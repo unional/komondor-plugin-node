@@ -71,37 +71,41 @@ const childProcess = {
   }
 }
 
-testTrio('childProcess/success', async spec => {
-  const s = await spec(childProcess.spawnSuccess)
-  const actual = await childProcess.increment(s.subject, 2)
-  t.deepEqual(actual, {
-    result: [['stdout', 3], ['stdout', 4], ['stdout', 5]],
-    code: 0
-  })
+testTrio('childProcess/success', (title, spec) => {
+  test(title, async () => {
+    const s = await spec(childProcess.spawnSuccess)
+    const actual = await childProcess.increment(s.subject, 2)
+    t.deepEqual(actual, {
+      result: [['stdout', 3], ['stdout', 4], ['stdout', 5]],
+      code: 0
+    })
 
-  await s.satisfy([
-    { type: 'function', name: 'invoke', payload: ['increment', [2]], meta: { instanceId: 1, invokeId: 1 } },
-    { type: 'function', name: 'return', payload: {}, meta: { instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 } },
-    { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { instanceId: 1, invokeId: 1, site: ['stdout', 'on'], event: 'data' } },
-    { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { instanceId: 1, invokeId: 2, site: ['stdout', 'on'], event: 'data' } },
-    { type: 'node/childProcess', name: 'invoke', payload: [5], meta: { instanceId: 1, invokeId: 3, site: ['stdout', 'on'], event: 'data' } },
-    { type: 'node/childProcess', name: 'invoke', payload: [0], meta: { instanceId: 1, invokeId: 4, site: ['on'], event: 'close' } }
-  ])
+    await s.satisfy([
+      { type: 'function', name: 'invoke', payload: ['increment', [2]], instanceId: 1, invokeId: 1 },
+      { type: 'function', name: 'return', payload: {}, instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
+      { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 1 },
+      { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 2 },
+      { type: 'node/childProcess', name: 'invoke', payload: [5], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 3 },
+      { type: 'node/childProcess', name: 'invoke', payload: [0], meta: { site: ['on'], event: 'close' }, instanceId: 1, invokeId: 4 }
+    ])
+  })
 })
 
 
-testTrio('childProcess/fail', async spec => {
-  const s = await spec(childProcess.spawnFail)
-  const actual = await childProcess.increment(s.subject, 2)
-  t.deepEqual(actual, {
-    result: [['stdout', 3], ['stderr', 4]],
-    code: 1
+testTrio('childProcess/fail', (title, spec) => {
+  test(title, async () => {
+    const s = await spec(childProcess.spawnFail)
+    const actual = await childProcess.increment(s.subject, 2)
+    t.deepEqual(actual, {
+      result: [['stdout', 3], ['stderr', 4]],
+      code: 1
+    })
+    await s.satisfy([
+      { type: 'function', name: 'invoke', payload: ['increment', [2]], instanceId: 1, invokeId: 1 },
+      { type: 'function', name: 'return', payload: {}, instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
+      { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 1 },
+      { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { site: ['stderr', 'on'], event: 'data' }, instanceId: 1, invokeId: 2 },
+      { type: 'node/childProcess', name: 'invoke', payload: [1], meta: { site: ['on'], event: 'close' }, instanceId: 1, invokeId: 3 }
+    ])
   })
-  await s.satisfy([
-    { type: 'function', name: 'invoke', payload: ['increment', [2]], meta: { instanceId: 1, invokeId: 1 } },
-    { type: 'function', name: 'return', payload: {}, meta: { instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 } },
-    { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { instanceId: 1, invokeId: 1, site: ['stdout', 'on'], event: 'data' } },
-    { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { instanceId: 1, invokeId: 2, site: ['stderr', 'on'], event: 'data' } },
-    { type: 'node/childProcess', name: 'invoke', payload: [1], meta: { instanceId: 1, invokeId: 3, site: ['on'], event: 'close' } }
-  ])
 })
