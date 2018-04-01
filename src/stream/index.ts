@@ -4,6 +4,14 @@ import { Stream, Writable } from 'stream'
 import { getFileIO } from './io'
 
 const TYPE = 'node/stream'
+
+export function streamReceivedAtLeast(length: number) {
+  return { type: TYPE, meta: { length: len => len > length } }
+}
+export function streamReceivedExactly(length: number) {
+  return { type: TYPE, meta: { length: len => len === length } }
+}
+
 export function activate(registrar: Registrar) {
   const io = getFileIO('__komondor__')
   registrar.register(
