@@ -1,6 +1,8 @@
 import t from 'assert'
 import { testSave, testSimulate } from 'komondor-test'
 import stream from 'stream'
+import { spec } from 'komondor';
+import { streamReceivedAtLeast, streamReceivedExactly } from '..'
 
 function readStream(): stream.Stream {
   const rs = new stream.Readable()
@@ -14,6 +16,27 @@ function readStream(): stream.Stream {
   }
   return rs
 }
+
+test('acceptance', async () => {
+  const s = await spec(readStream)
+  const read = s.subject()
+  await new Promise(a => {
+    read.on('end', () => a())
+  })
+
+  await s.satisfy([
+    undefined,
+    undefined,
+    streamReceivedAtLeast(10)
+  ])
+
+  await s.satisfy([
+    undefined,
+    undefined,
+    streamReceivedExactly(11)
+  ])
+})
+
 async function simpleStreamTest(title, spec) {
   test(title, async () => {
     const s = await spec(readStream)
