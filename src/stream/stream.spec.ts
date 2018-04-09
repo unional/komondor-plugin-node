@@ -27,10 +27,14 @@ test('acceptance', async () => {
   await s.satisfy([
     undefined,
     undefined,
+    undefined,
+    undefined,
     streamReceivedAtLeast(10)
   ])
 
   await s.satisfy([
+    undefined,
+    undefined,
     undefined,
     undefined,
     streamReceivedExactly(11)
@@ -54,7 +58,9 @@ async function simpleStreamTest(title, spec) {
 
     await s.satisfy([
       undefined,
+      undefined,
       { type: 'function', name: 'return', instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
+      undefined,
       { type: 'node/stream', meta: { length: 11 }, instanceId: 1, invokeId: 1 }
     ])
   })
@@ -102,7 +108,10 @@ async function promiseReturnStreamTest(title, spec) {
     await target.satisfy([
       undefined,
       undefined,
+      undefined,
+      undefined,
       { type: 'promise', name: 'return', meta: { state: 'fulfilled' }, returnType: 'node/stream', returnInstanceId: 1 },
+      undefined,
       { type: 'node/stream', meta: { length: 11 }, instanceId: 1 }
     ])
   })

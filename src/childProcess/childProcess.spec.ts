@@ -1,5 +1,20 @@
 import t from 'assert'
 import { testTrio } from 'komondor-test'
+import { functionConstructed } from 'komondor'
+// import cp from 'child_process'
+
+// describe('acceptance test', () => {
+//   testLive('childProcess/acceptance/spawn', (title, spec) => {
+//     test.only(title, async () => {
+//       const s = await spec(cp.spawn)
+//       const child = s.subject('node', ['--version'])
+//       console.log(child)
+//       child.on('close', () => console.log('closed'))
+//       child.stdout.on('data', chunk => console.log('data', chunk.toString()))
+//     })
+//   })
+// })
+
 
 const childProcess = {
   increment(remote, x) {
@@ -81,8 +96,10 @@ testTrio('childProcess/success', (title, spec) => {
     })
 
     await s.satisfy([
+      { ...functionConstructed({ functionName: 'spawnSuccess' }), instanceId: 1 },
       { type: 'function', name: 'invoke', payload: ['increment', [2]], instanceId: 1, invokeId: 1 },
       { type: 'function', name: 'return', payload: {}, instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
+      undefined,
       { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 1 },
       { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 2 },
       { type: 'node/childProcess', name: 'invoke', payload: [5], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 3 },
@@ -101,8 +118,10 @@ testTrio('childProcess/fail', (title, spec) => {
       code: 1
     })
     await s.satisfy([
+      { ...functionConstructed({ functionName: 'spawnFail' }), instanceId: 1 },
       { type: 'function', name: 'invoke', payload: ['increment', [2]], instanceId: 1, invokeId: 1 },
       { type: 'function', name: 'return', payload: {}, instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
+      undefined,
       { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 1 },
       { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { site: ['stderr', 'on'], event: 'data' }, instanceId: 1, invokeId: 2 },
       { type: 'node/childProcess', name: 'invoke', payload: [1], meta: { site: ['on'], event: 'close' }, instanceId: 1, invokeId: 3 }

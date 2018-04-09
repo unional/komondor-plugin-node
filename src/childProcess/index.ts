@@ -3,6 +3,7 @@ import { Registrar, StubContext, SpyContext, SpyInstance } from 'komondor-plugin
 import { log } from '../log'
 
 const TYPE = 'node/childProcess'
+
 export function activate(registrar: Registrar) {
   registrar.register(
     TYPE,
@@ -33,7 +34,7 @@ function spyOnListener(instance: SpyInstance, type: string, base, site: string[]
     return p[v]
   }, base)
   const methodName = site[site.length - 1]
-  const fn = subject[methodName]
+  const fn: Function = subject[methodName]
   subject[methodName] = function (event, cb) {
     const wrap = (...args) => {
       const call = instance.newCall()
