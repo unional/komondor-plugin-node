@@ -23,11 +23,12 @@ export function activate(registrar: Registrar) {
 }
 
 function spyStream(context: SpyContext, io, subject: Stream) {
-  const call = context.newCall()
+  const instance = context.newInstance()
+  const call = instance.newCall()
 
   let writer: Writable
   if (context.mode === 'save') {
-    writer = io.createWriteStream(`${context.specId}/stream_${context.instanceId}_${call.invokeId}`)
+    writer = io.createWriteStream(`${context.specId}/stream_${instance.instanceId}_${call.invokeId}`)
   }
   let length = 0
   subject.on('data', chunk => {
@@ -42,7 +43,8 @@ function spyStream(context: SpyContext, io, subject: Stream) {
 }
 
 function stubStream(context: StubContext, io): Stream {
-  const call = context.newCall()
+  const instance = context.newInstance()
+  const call = instance.newCall()
   let action = call.peek()!
   const readStream = io.createReadStream(`${context.specId}/stream_${action.instanceId}_${action.invokeId}`)
   call.next()

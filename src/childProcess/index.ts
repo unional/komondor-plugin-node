@@ -1,4 +1,4 @@
-import { Registrar, StubContext, SpyContext } from 'komondor-plugin'
+import { Registrar, StubContext, SpyContext, SpyInstance } from 'komondor-plugin'
 
 import { log } from '../log'
 
@@ -19,13 +19,14 @@ function isChildProcess(subject) {
 }
 
 function spyChildProcess(context: SpyContext, subject) {
-  spyOnListener(context, TYPE, subject, ['on'])
-  spyOnListener(context, TYPE, subject, ['stdout', 'on'])
-  spyOnListener(context, TYPE, subject, ['stderr', 'on'])
+  const instance = context.newInstance()
+  spyOnListener(instance, TYPE, subject, ['on'])
+  spyOnListener(instance, TYPE, subject, ['stdout', 'on'])
+  spyOnListener(instance, TYPE, subject, ['stderr', 'on'])
   return subject
 }
 
-function spyOnListener(context: SpyContext, type: string, base, site: string[]) {
+function spyOnListener(instance: SpyInstance, type: string, base, site: string[]) {
   const subject = site.reduce((p, v, i) => {
     if (i === site.length - 1)
       return p
@@ -35,7 +36,7 @@ function spyOnListener(context: SpyContext, type: string, base, site: string[]) 
   const fn = subject[methodName]
   subject[methodName] = function (event, cb) {
     const wrap = (...args) => {
-      const call = context.newCall()
+      const call = instance.newCall()
       call.invoke(args, { site, event })
       cb(...args)
     }
@@ -47,7 +48,8 @@ function stubChildProcess(context: StubContext) {
   const on = {}
   const stdout = {}
   const stderr = {}
-  const call = context.newCall()
+  const instance = context.newInstance()
+  const call = instance.newCall()
 
   setImmediate(() => {
     let action = call.peek()

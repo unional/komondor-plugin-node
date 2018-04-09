@@ -102,7 +102,7 @@ async function promiseReturnStreamTest(title, spec) {
     await target.satisfy([
       undefined,
       undefined,
-      { type: 'promise', name: 'return', meta: { status: 'resolve' }, returnType: 'node/stream', returnInstanceId: 1 },
+      { type: 'promise', name: 'return', meta: { state: 'fulfilled' }, returnType: 'node/stream', returnInstanceId: 1 },
       { type: 'node/stream', meta: { length: 11 }, instanceId: 1 }
     ])
   })
