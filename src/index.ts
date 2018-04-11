@@ -1,9 +1,28 @@
 import { Registrar } from 'komondor-plugin'
 
-import { activate as cpActivate } from './childProcess'
-import { activate as streamActivate, streamReceivedAtLeast, streamReceivedExactly } from './stream'
+import {
+  activate as cpActivate,
+  childProcessConstructed,
+  childProcessInvoked,
+  childProcessReturned
+} from './childProcess'
+import {
+  activate as streamActivate,
+  streamConstructed,
+  streamMethodInvoked,
+  streamMethodReturned,
+  streamReceivedMultipleData
+} from './stream'
 
-export { streamReceivedAtLeast, streamReceivedExactly }
+export {
+  childProcessConstructed,
+  childProcessInvoked,
+  childProcessReturned,
+  streamConstructed,
+  streamMethodInvoked,
+  streamMethodReturned,
+  streamReceivedMultipleData
+}
 
 export function activate(registrar: Registrar) {
   cpActivate(registrar)

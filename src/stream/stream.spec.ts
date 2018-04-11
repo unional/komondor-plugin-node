@@ -1,10 +1,9 @@
 import t from 'assert'
-import { spec, functionConstructed, functionInvoked, functionReturned, callbackInvoked, promiseResolved } from 'komondor'
+import { spec, functionConstructed, functionInvoked, functionReturned, callbackInvoked, promiseConstructed, promiseResolved } from 'komondor'
 import { testSave, testSimulate } from 'komondor-test'
 import stream from 'stream'
 
-import { streamConstructed, streamMethodInvoked, streamMethodReturned, streamReceivedMultipleData } from '.'
-import { promiseConstructed } from 'komondor/dist-es5/promise';
+import { streamConstructed, streamMethodInvoked, streamMethodReturned, streamReceivedMultipleData } from '..'
 
 function readStream(): stream.Stream {
   const rs = new stream.Readable()

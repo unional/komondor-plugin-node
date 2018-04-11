@@ -1,7 +1,7 @@
 import t from 'assert'
-import { testTrio } from 'komondor-test'
 import { functionConstructed, functionInvoked, functionReturned, callbackInvoked } from 'komondor'
-import { childProcessConstructed, childProcessInvoked, childProcessReturned } from '.';
+import { testTrio } from 'komondor-test'
+import { childProcessConstructed, childProcessInvoked, childProcessReturned } from '..'
 // import cp from 'child_process'
 
 // describe('acceptance test', () => {
