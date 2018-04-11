@@ -1,8 +1,10 @@
 import t from 'assert'
+import { spec, functionConstructed, functionInvoked, functionReturned, callbackInvoked, promiseResolved } from 'komondor'
 import { testSave, testSimulate } from 'komondor-test'
 import stream from 'stream'
-import { spec } from 'komondor';
-import { streamReceivedAtLeast, streamReceivedExactly } from '..'
+
+import { streamConstructed, streamMethodInvoked, streamMethodReturned, streamReceivedMultipleData } from '.'
+import { promiseConstructed } from 'komondor/dist-es5/promise';
 
 function readStream(): stream.Stream {
   const rs = new stream.Readable()
@@ -17,27 +19,29 @@ function readStream(): stream.Stream {
   return rs
 }
 
+
 test('acceptance', async () => {
-  const s = await spec(readStream)
+  const s = await spec.simulate('stream/acceptance/helloWorld', readStream)
   const read = s.subject()
+  let message = ''
   await new Promise(a => {
+    read.on('data', chunk => message += chunk)
     read.on('end', () => a())
   })
 
-  await s.satisfy([
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    streamReceivedAtLeast(10)
-  ])
+  t.equal(message, 'hello world')
 
   await s.satisfy([
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    streamReceivedExactly(11)
+    { ...functionConstructed({ functionName: 'readStream' }), instanceId: 1 },
+    { ...functionInvoked(), instanceId: 1, invokeId: 1 },
+    { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
+    { ...streamConstructed(), instanceId: 1 },
+    { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
+    { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
+    { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
+    { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
+    streamReceivedMultipleData(),
+    { ...callbackInvoked(), sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] }
   ])
 })
 
@@ -45,23 +49,25 @@ async function simpleStreamTest(title, spec) {
   test(title, async () => {
     const s = await spec(readStream)
     const read = s.subject()
-    const actual = await new Promise(a => {
-      let message = ''
-      read.on('data', m => {
-        message += m
-      })
-      read.on('end', () => {
-        a(message)
-      })
+    let message = ''
+    await new Promise(a => {
+      read.on('data', chunk => message += chunk)
+      read.on('end', () => a())
     })
-    t.equal(actual, 'hello world')
+
+    t.equal(message, 'hello world')
 
     await s.satisfy([
-      undefined,
-      undefined,
-      { type: 'function', name: 'return', instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
-      undefined,
-      { type: 'node/stream', meta: { length: 11 }, instanceId: 1, invokeId: 1 }
+      { ...functionConstructed({ functionName: 'readStream' }), instanceId: 1 },
+      { ...functionInvoked(), instanceId: 1, invokeId: 1 },
+      { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
+      { ...streamConstructed(), instanceId: 1 },
+      { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
+      { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
+      { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
+      { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
+      streamReceivedMultipleData(),
+      { ...callbackInvoked(), sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] }
     ])
   })
 }
@@ -106,13 +112,18 @@ async function promiseReturnStreamTest(title, spec) {
     t.equal(actual, 'hello world')
 
     await target.satisfy([
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      { type: 'promise', name: 'return', meta: { state: 'fulfilled' }, returnType: 'node/stream', returnInstanceId: 1 },
-      undefined,
-      { type: 'node/stream', meta: { length: 11 }, instanceId: 1 }
+      { ...functionConstructed({ functionName: 'promiseStream' }), instanceId: 1 },
+      { ...functionInvoked(), instanceId: 1, invokeId: 1 },
+      { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'promise', returnInstanceId: 1 },
+      { ...promiseConstructed(), instanceId: 1 },
+      { ...promiseResolved(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
+      { ...streamConstructed(), instanceId: 1 },
+      { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
+      { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
+      { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
+      { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
+      streamReceivedMultipleData(),
+      { ...callbackInvoked(), sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] }
     ])
   })
 }

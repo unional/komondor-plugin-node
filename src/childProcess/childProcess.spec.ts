@@ -1,6 +1,7 @@
 import t from 'assert'
 import { testTrio } from 'komondor-test'
-import { functionConstructed } from 'komondor'
+import { functionConstructed, functionInvoked, functionReturned, callbackInvoked } from 'komondor'
+import { childProcessConstructed, childProcessInvoked, childProcessReturned } from '.';
 // import cp from 'child_process'
 
 // describe('acceptance test', () => {
@@ -97,13 +98,20 @@ testTrio('childProcess/success', (title, spec) => {
 
     await s.satisfy([
       { ...functionConstructed({ functionName: 'spawnSuccess' }), instanceId: 1 },
-      { type: 'function', name: 'invoke', payload: ['increment', [2]], instanceId: 1, invokeId: 1 },
-      { type: 'function', name: 'return', payload: {}, instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
-      undefined,
-      { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 1 },
-      { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 2 },
-      { type: 'node/childProcess', name: 'invoke', payload: [5], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 3 },
-      { type: 'node/childProcess', name: 'invoke', payload: [0], meta: { site: ['on'], event: 'close' }, instanceId: 1, invokeId: 4 }
+      { ...functionInvoked('increment', [2]), instanceId: 1, invokeId: 1 },
+      { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
+      { ...childProcessConstructed(), instanceId: 1 },
+      { ...childProcessInvoked(['on'], 'close'), instanceId: 1, invokeId: 1 },
+      { ...childProcessReturned(['on']), instanceId: 1, invokeId: 1 },
+      { ...childProcessInvoked(['on'], 'error'), instanceId: 1, invokeId: 2 },
+      { ...childProcessReturned(['on']), instanceId: 1, invokeId: 2 },
+      { ...childProcessInvoked(['stdout', 'on'], 'data'), instanceId: 1, invokeId: 3 },
+      { ...childProcessReturned(['stdout', 'on']), instanceId: 1, invokeId: 3 },
+      { ...childProcessInvoked(['stderr', 'on'], 'data'), instanceId: 1, invokeId: 4 },
+      { ...childProcessReturned(['stderr', 'on']), instanceId: 1, invokeId: 4 },
+      { ...callbackInvoked(3), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
+      { ...callbackInvoked(4), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
+      { ...callbackInvoked(5), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] }
     ])
   })
 })
@@ -119,12 +127,20 @@ testTrio('childProcess/fail', (title, spec) => {
     })
     await s.satisfy([
       { ...functionConstructed({ functionName: 'spawnFail' }), instanceId: 1 },
-      { type: 'function', name: 'invoke', payload: ['increment', [2]], instanceId: 1, invokeId: 1 },
-      { type: 'function', name: 'return', payload: {}, instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
-      undefined,
-      { type: 'node/childProcess', name: 'invoke', payload: [3], meta: { site: ['stdout', 'on'], event: 'data' }, instanceId: 1, invokeId: 1 },
-      { type: 'node/childProcess', name: 'invoke', payload: [4], meta: { site: ['stderr', 'on'], event: 'data' }, instanceId: 1, invokeId: 2 },
-      { type: 'node/childProcess', name: 'invoke', payload: [1], meta: { site: ['on'], event: 'close' }, instanceId: 1, invokeId: 3 }
+      { ...functionInvoked('increment', [2]), instanceId: 1, invokeId: 1 },
+      { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
+      { ...childProcessConstructed(), instanceId: 1 },
+      { ...childProcessInvoked(['on'], 'close'), instanceId: 1, invokeId: 1 },
+      { ...childProcessReturned(['on']), instanceId: 1, invokeId: 1 },
+      { ...childProcessInvoked(['on'], 'error'), instanceId: 1, invokeId: 2 },
+      { ...childProcessReturned(['on']), instanceId: 1, invokeId: 2 },
+      { ...childProcessInvoked(['stdout', 'on'], 'data'), instanceId: 1, invokeId: 3 },
+      { ...childProcessReturned(['stdout', 'on']), instanceId: 1, invokeId: 3 },
+      { ...childProcessInvoked(['stderr', 'on'], 'data'), instanceId: 1, invokeId: 4 },
+      { ...childProcessReturned(['stderr', 'on']), instanceId: 1, invokeId: 4 },
+      { ...callbackInvoked(3), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
+      { ...callbackInvoked(4), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourcePath: [1] },
+      { ...callbackInvoked(1), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] }
     ])
   })
 })

@@ -1,8 +1,18 @@
 import { Registrar, StubContext, SpyContext, SpyInstance } from 'komondor-plugin'
 
-import { log } from '../log'
-
 const TYPE = 'node/childProcess'
+
+export function childProcessConstructed() {
+  return { type: TYPE, name: 'construct' }
+}
+
+export function childProcessInvoked(site: string[], ...args: any[]) {
+  return { type: TYPE, name: 'invoke', payload: args, meta: { site } }
+}
+
+export function childProcessReturned(site: string[], result?) {
+  return { type: TYPE, name: 'return', payload: result, meta: { site } }
+}
 
 export function activate(registrar: Registrar) {
   registrar.register(
@@ -36,68 +46,39 @@ function spyOnListener(instance: SpyInstance, type: string, base, site: string[]
   const methodName = site[site.length - 1]
   const fn: Function = subject[methodName]
   subject[methodName] = function (event, cb) {
-    const wrap = (...args) => {
-      const call = instance.newCall()
-      call.invoke(args, { site, event })
-      cb(...args)
-    }
-    return fn.call(subject, event, wrap)
+    const call = instance.newCall({ site })
+    const spiedArgs = call.invoke([event, cb])
+    const result = fn.call(subject, ...spiedArgs)
+    call.return(result)
+    return result
   }
 }
 
 function stubChildProcess(context: StubContext) {
-  const on = {}
-  const stdout = {}
-  const stderr = {}
   const instance = context.newInstance()
-  const call = instance.newCall()
-
-  setImmediate(() => {
-    let action = call.peek()
-    while (action && isChildProcessAction(action)) {
-      const site = action.meta.site.join('.')
-      let target
-      switch (site) {
-        case 'on':
-          target = on
-          break
-        case 'stdout.on':
-          target = stdout
-          break
-        case 'stderr.on':
-          target = stderr
-          break
-      }
-
-      target[action.meta.event].forEach(cb => cb(...action!.payload))
-      call.next()
-      action = call.peek()
-    }
-  })
-
-  function push(bag, event, callback) {
-    (bag[event] = bag[event] || []).push(callback)
-  }
+  // TODO: create a complete fake childProcess
   return {
     on(event, callback) {
-      log.debug('on()', event, callback)
-      push(on, event, callback)
+      const call = instance.newCall({ site: ['on'] })
+      call.invoked([event, callback])
+      call.blockUntilReturn()
+      return call.result()
     },
     stdout: {
       on(event, callback) {
-        log.debug('stdout.on()', event, callback)
-        push(stdout, event, callback)
+        const call = instance.newCall({ site: ['stdout', 'on'] })
+        call.invoked([event, callback])
+        call.blockUntilReturn()
+        return call.result()
       }
     },
     stderr: {
       on(event, callback) {
-        log.debug('stderr.on()', event, callback)
-        push(stderr, event, callback)
+        const call = instance.newCall({ site: ['stderr', 'on'] })
+        call.invoked([event, callback])
+        call.blockUntilReturn()
+        return call.result()
       }
     }
   }
-}
-
-function isChildProcessAction(action) {
-  return action.type === TYPE
 }
