@@ -3,8 +3,6 @@ import { Registrar, SpyContext, StubContext } from 'komondor-plugin'
 import { Stream } from 'stream'
 import { AtLeastOnce } from 'satisfier'
 
-import { getFileIO } from './io'
-
 const TYPE = 'node/stream'
 
 export function streamConstructed() {
@@ -23,16 +21,15 @@ export function streamMethodReturned(site?: string[]) {
 }
 
 export function activate(registrar: Registrar) {
-  const io = getFileIO('__komondor__')
   registrar.register(
     TYPE,
     subject => subject instanceof Stream,
-    (context, subject) => spyStream(context, io, subject),
-    (context) => stubStream(context, io)
+    (context, subject) => spyStream(context, subject),
+    (context) => stubStream(context)
   )
 }
 
-function spyStream(context: SpyContext, io, subject: Stream) {
+function spyStream(context: SpyContext, subject: Stream) {
   const instance = context.newInstance()
   const on = subject.on
   subject['on'] = function (event, listener) {
@@ -42,25 +39,10 @@ function spyStream(context: SpyContext, io, subject: Stream) {
     call.return(undefined)
     return this
   }
-  // const call = instance.newCall()
-
-  // let writer: Writable
-  // if (context.mode === 'save') {
-  //   writer = io.createWriteStream(`${context.specId}/stream_${instance.instanceId}_${call.invokeId}`)
-  // }
-  // let length = 0
-  // subject.on('data', chunk => {
-  //   length += chunk.length
-  //   if (writer) writer.write(chunk)
-  // })
-  // subject.on('end', () => {
-  //   call.return([], { length })
-  //   if (writer) writer.end()
-  // })
   return subject
 }
 
-function stubStream(context: StubContext, io) {
+function stubStream(context: StubContext) {
   const instance = context.newInstance()
   return {
     on(event, listener) {
@@ -73,11 +55,4 @@ function stubStream(context: StubContext, io) {
       return call.result()
     }
   }
-  // const call = instance.newCall()
-  // const readStream: Stream = io.createReadStream(`${context.specId}/stream_${instance.instanceId}_${call.invokeId}`)
-  // readStream.on('end', () => {
-  //   call.result()
-  // })
-
-  // return readStream
 }

@@ -60,6 +60,7 @@
   "devDependencies": {
     "@types/jest": "^22.2.2",
     "@types/node": "^9.6.4",
+    "@unional/logging": "^0.4.1",
     "aurelia-logging-color": "^0.5.15",
     "dependency-check": "^3.1.0",
     "eslint": "^4.19.1",
@@ -76,7 +77,6 @@
     "typescript": "^2.8.1"
   },
   "dependencies": {
-    "@unional/logging": "^0.4.1",
     "satisfier": "^4.4.1"
   }
 }
