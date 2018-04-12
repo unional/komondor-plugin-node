@@ -18,7 +18,6 @@ function readStream(): stream.Stream {
   return rs
 }
 
-
 test('acceptance', async () => {
   const s = await spec.simulate('stream/acceptance/helloWorld', readStream)
   const read = s.subject()

@@ -1,20 +1,26 @@
 import t from 'assert'
 import { functionConstructed, functionInvoked, functionReturned, callbackInvoked } from 'komondor'
-import { testTrio } from 'komondor-test'
+import k from 'komondor-test'
 import { childProcessConstructed, childProcessInvoked, childProcessReturned } from '..'
-// import cp from 'child_process'
+import cp from 'child_process'
 
-// describe('acceptance test', () => {
-//   testLive('childProcess/acceptance/spawn', (title, spec) => {
-//     test.only(title, async () => {
-//       const s = await spec(cp.spawn)
-//       const child = s.subject('node', ['--version'])
-//       console.log(child)
-//       child.on('close', () => console.log('closed'))
-//       child.stdout.on('data', chunk => console.log('data', chunk.toString()))
-//     })
-//   })
-// })
+describe('acceptance test', () => {
+  k.trio('childProcess/acceptance/spawn', (title, spec) => {
+    // additional on('end') are called internally.
+    // need to filter them out before it is workable.
+    test.skip(title, async () => {
+      const s = await spec(cp.spawn)
+      const child = s.subject('node', ['--version'])
+      const actual = await new Promise<string>(a => {
+        let msg = ''
+        child.on('close', () => a(msg))
+        child.stdout.on('data', chunk => msg += chunk)
+      })
+      t(/v*/.test(actual))
+      s.done()
+    })
+  })
+})
 
 
 const childProcess = {
@@ -87,7 +93,7 @@ const childProcess = {
   }
 }
 
-testTrio('childProcess/success', (title, spec) => {
+k.trio('childProcess/success', (title, spec) => {
   test(title, async () => {
     const s = await spec(childProcess.spawnSuccess)
     const actual = await childProcess.increment(s.subject, 2)
@@ -117,7 +123,7 @@ testTrio('childProcess/success', (title, spec) => {
 })
 
 
-testTrio('childProcess/fail', (title, spec) => {
+k.trio('childProcess/fail', (title, spec) => {
   test(title, async () => {
     const s = await spec(childProcess.spawnFail)
     const actual = await childProcess.increment(s.subject, 2)
