@@ -28,7 +28,6 @@ function isChildProcess(subject) {
     subject.stdout && typeof subject.stdout.on === 'function' &&
     subject.stderr && typeof subject.stderr.on === 'function'
 }
-
 function spyChildProcess(context: SpyContext, subject) {
   const instance = context.newInstance()
   spyOnListener(instance, TYPE, subject, ['on'])
@@ -49,7 +48,7 @@ function spyOnListener(instance: SpyInstance, type: string, base, site: string[]
     const call = instance.newCall({ site })
     const spiedArgs = call.invoke([event, cb])
     const result = fn.call(subject, ...spiedArgs)
-    call.return(result)
+    call.return(undefined)
     return result
   }
 }
