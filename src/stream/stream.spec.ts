@@ -1,6 +1,8 @@
 import t from 'assert'
-import { spec, functionConstructed, functionInvoked, functionReturned, callbackInvoked, promiseConstructed, promiseResolved } from 'komondor'
-import { testSave, testSimulate } from 'komondor-test'
+import fs from 'fs'
+import { spec, functionConstructed, functionInvoked, functionReturned, promiseConstructed, promiseResolved } from 'komondor'
+import k from 'komondor-test'
+import fetch from 'node-fetch'
 import stream from 'stream'
 
 import { streamConstructed, streamMethodInvoked, streamMethodReturned, streamReceivedMultipleData } from '..'
@@ -35,11 +37,12 @@ test('acceptance', async () => {
     { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
     { ...streamConstructed(), instanceId: 1 },
     { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
+    { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
     { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
     { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
+    { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
     { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
-    streamReceivedMultipleData(),
-    { ...callbackInvoked(), sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] }
+    streamReceivedMultipleData()
   ])
 })
 
@@ -54,24 +57,24 @@ async function simpleStreamTest(title, spec) {
     })
 
     t.equal(message, 'hello world')
-
     await s.satisfy([
       { ...functionConstructed({ functionName: 'readStream' }), instanceId: 1 },
       { ...functionInvoked(), instanceId: 1, invokeId: 1 },
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
       { ...streamConstructed(), instanceId: 1 },
       { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
-      streamReceivedMultipleData(),
-      { ...callbackInvoked(), sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] }
+      streamReceivedMultipleData()
     ])
   })
 }
 
-testSave('stream/save', simpleStreamTest)
-testSimulate('stream/simulate', simpleStreamTest)
+k.save('stream/save', simpleStreamTest)
+k.simulate('stream/simulate', simpleStreamTest)
 
 
 function promiseStream() {
@@ -96,20 +99,16 @@ function promiseStream() {
 }
 async function promiseReturnStreamTest(title, spec) {
   test(title, async () => {
-    const target = await spec(promiseStream)
-    const read = await target.subject()
+    const s = await spec(promiseStream)
+    const read = await s.subject()
     const actual = await new Promise(a => {
       let message = ''
-      read.on('data', m => {
-        message += m
-      })
-      read.on('end', () => {
-        a(message)
-      })
+      read.on('data', m => message += m)
+      read.on('end', () => a(message))
     })
     t.equal(actual, 'hello world')
 
-    await target.satisfy([
+    await s.satisfy([
       { ...functionConstructed({ functionName: 'promiseStream' }), instanceId: 1 },
       { ...functionInvoked(), instanceId: 1, invokeId: 1 },
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'promise', returnInstanceId: 1 },
@@ -117,15 +116,41 @@ async function promiseReturnStreamTest(title, spec) {
       { ...promiseResolved(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
       { ...streamConstructed(), instanceId: 1 },
       { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
-      streamReceivedMultipleData(),
-      { ...callbackInvoked(), sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] }
+      streamReceivedMultipleData()
     ])
   })
 }
-testSave('promise returning a stream', 'promise/readStream', promiseReturnStreamTest)
+
+k.save('promise returning a stream', 'stream/promise/readStream', promiseReturnStreamTest)
 // this test uses `readStreamReplay` as source because it causes concurrency issue with the `save` test.
 // It doesn't happen in actual usage as there should be only one test accessing one spec file.
-testSimulate('promise returning a stream', 'promise/readStreamSimulate', promiseReturnStreamTest)
+k.simulate('promise returning a stream', 'stream/promise/readStreamSimulate', promiseReturnStreamTest)
+
+k.simulate('file upload stream', 'spec/node-fetch/input-stream', (title, spec) => {
+  test(title, async () => {
+    async function wrapFetch(url, options) {
+      const resp = await fetch(url, options)
+      const result = await resp.json()
+      return result.data
+    }
+    const s = await spec(wrapFetch)
+    const size = fs.statSync('fixtures/node-fetch/file.txt').size
+    const file = fs.createReadStream('fixtures/node-fetch/file.txt')
+    const actual = await s.subject('http://httpbin.org/post', {
+      method: 'POST',
+      headers: {
+        'Content-length': size
+      },
+      body: file
+    })
+
+    t.equal(actual, 'file\n')
+
+    await s.done()
+  })
+})

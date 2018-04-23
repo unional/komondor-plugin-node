@@ -5,8 +5,13 @@ const TYPE = 'node/Buffer'
 export function activate(registrar: Registrar) {
   registrar.register(
     TYPE,
-    subject => subject instanceof Buffer,
+    isBuffer,
     (context, subject) => subject,
-    (context) => {}
+    (context) => {},
+    subject => subject
   )
+}
+
+export function isBuffer(subject) {
+  return subject instanceof Buffer || (subject && subject.type === 'Buffer' && subject.data)
 }
