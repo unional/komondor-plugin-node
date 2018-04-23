@@ -2,7 +2,7 @@ import { Registrar, SpyContext, StubContext } from 'komondor-plugin'
 import { Stream } from 'stream'
 import { AtLeastOnce } from 'satisfier'
 
-import { isBuffer } from '../buffer'
+import { isBuffer } from '../Buffer'
 const TYPE = 'node/stream'
 
 export function streamConstructed() {
