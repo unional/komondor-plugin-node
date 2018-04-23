@@ -1,5 +1,5 @@
 import t from 'assert'
-import { functionConstructed, functionInvoked, functionReturned, callbackInvoked } from 'komondor'
+import { functionConstructed, functionInvoked, functionReturned } from 'komondor'
 import k from 'komondor-test'
 import { childProcessConstructed, childProcessInvoked, childProcessReturned } from '..'
 import cp from 'child_process'
@@ -108,16 +108,23 @@ k.trio('childProcess/success', (title, spec) => {
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
       { ...childProcessConstructed(), instanceId: 1 },
       { ...childProcessInvoked(['on'], 'close'), instanceId: 1, invokeId: 1 },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...childProcessInvoked(['on'], 'error'), instanceId: 1, invokeId: 2 },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 2 },
       { ...childProcessInvoked(['stdout', 'on'], 'data'), instanceId: 1, invokeId: 3 },
+      { ...functionConstructed(), instanceId: 4, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
       { ...childProcessReturned(['stdout', 'on']), instanceId: 1, invokeId: 3 },
       { ...childProcessInvoked(['stderr', 'on'], 'data'), instanceId: 1, invokeId: 4 },
+      { ...functionConstructed(), instanceId: 5, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourcePath: [1] },
       { ...childProcessReturned(['stderr', 'on']), instanceId: 1, invokeId: 4 },
-      { ...callbackInvoked(3), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
-      { ...callbackInvoked(4), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
-      { ...callbackInvoked(5), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] }
+      { ...functionInvoked(3), instanceId: 4, invokeId: 1 },
+      { ...functionReturned(), instanceId: 4, invokeId: 1 },
+      { ...functionInvoked(4), instanceId: 4, invokeId: 2 },
+      { ...functionReturned(), instanceId: 4, invokeId: 2 },
+      { ...functionInvoked(5), instanceId: 4, invokeId: 3 },
+      { ...functionReturned(), instanceId: 4, invokeId: 3 }
     ])
   })
 })
@@ -131,22 +138,30 @@ k.trio('childProcess/fail', (title, spec) => {
       result: [['stdout', 3], ['stderr', 4]],
       code: 1
     })
+
     await s.satisfy([
       { ...functionConstructed({ functionName: 'spawnFail' }), instanceId: 1 },
       { ...functionInvoked('increment', [2]), instanceId: 1, invokeId: 1 },
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
       { ...childProcessConstructed(), instanceId: 1 },
       { ...childProcessInvoked(['on'], 'close'), instanceId: 1, invokeId: 1 },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...childProcessInvoked(['on'], 'error'), instanceId: 1, invokeId: 2 },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 2 },
       { ...childProcessInvoked(['stdout', 'on'], 'data'), instanceId: 1, invokeId: 3 },
+      { ...functionConstructed(), instanceId: 4, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
       { ...childProcessReturned(['stdout', 'on']), instanceId: 1, invokeId: 3 },
       { ...childProcessInvoked(['stderr', 'on'], 'data'), instanceId: 1, invokeId: 4 },
+      { ...functionConstructed(), instanceId: 5, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourcePath: [1] },
       { ...childProcessReturned(['stderr', 'on']), instanceId: 1, invokeId: 4 },
-      { ...callbackInvoked(3), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
-      { ...callbackInvoked(4), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourcePath: [1] },
-      { ...callbackInvoked(1), sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] }
+      { ...functionInvoked(3), instanceId: 4, invokeId: 1 },
+      { ...functionReturned(), instanceId: 4, invokeId: 1 },
+      { ...functionInvoked(4), instanceId: 5, invokeId: 1 },
+      { ...functionReturned(), instanceId: 5, invokeId: 1 },
+      { ...functionInvoked(1), instanceId: 2, invokeId: 1 },
+      { ...functionReturned(), instanceId: 2, invokeId: 1 }
     ])
   })
 })

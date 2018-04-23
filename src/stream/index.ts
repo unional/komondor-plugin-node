@@ -1,8 +1,8 @@
-import { callbackInvoked } from 'komondor'
 import { Registrar, SpyContext, StubContext } from 'komondor-plugin'
 import { Stream } from 'stream'
 import { AtLeastOnce } from 'satisfier'
 
+import { isBuffer } from '../Buffer'
 const TYPE = 'node/stream'
 
 export function streamConstructed() {
@@ -10,7 +10,7 @@ export function streamConstructed() {
 }
 
 export function streamReceivedMultipleData() {
-  return new AtLeastOnce(callbackInvoked())
+  return new AtLeastOnce({ payload: p => Array.isArray(p) && isBuffer(p[0]) })
 }
 
 export function streamMethodInvoked(site: string[], ...args: any[]) {
@@ -23,9 +23,15 @@ export function streamMethodReturned(site?: string[]) {
 export function activate(registrar: Registrar) {
   registrar.register(
     TYPE,
-    subject => subject instanceof Stream,
+    subject => (subject instanceof Stream) ||
+      (subject && subject.path && subject.flags && subject.mode),
     (context, subject) => spyStream(context, subject),
-    (context) => stubStream(context)
+    (context) => stubStream(context),
+    subject => ({
+      path: subject.path,
+      flags: subject.flags,
+      mode: subject.mode
+    })
   )
 }
 
@@ -47,7 +53,7 @@ function stubStream(context: StubContext) {
   return {
     on(event, listener) {
       const call = instance.newCall({ site: ['on'] })
-      const wrap = (chunk) => {
+      const wrap = chunk => {
         listener(chunk && chunk.type === 'Buffer' ? Buffer.from(chunk.data) : chunk)
       }
       call.invoked([event, wrap])
