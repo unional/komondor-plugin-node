@@ -29,7 +29,7 @@ test('acceptance', async () => {
     read.on('end', () => a())
   })
 
-  t.equal(message, 'hello world')
+  t.strictEqual(message, 'hello world')
 
   await s.satisfy([
     { ...functionConstructed({ functionName: 'readStream' }), instanceId: 1 },
@@ -37,10 +37,10 @@ test('acceptance', async () => {
     { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
     { ...streamConstructed(), instanceId: 1 },
     { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
-    { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
+    { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourceSite: [1] },
     { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
     { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
-    { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
+    { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourceSite: [1] },
     { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
     streamReceivedMultipleData()
   ])
@@ -56,17 +56,17 @@ async function simpleStreamTest(title, spec) {
       read.on('end', () => a())
     })
 
-    t.equal(message, 'hello world')
+    t.strictEqual(message, 'hello world')
     await s.satisfy([
       { ...functionConstructed({ functionName: 'readStream' }), instanceId: 1 },
       { ...functionInvoked(), instanceId: 1, invokeId: 1 },
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
       { ...streamConstructed(), instanceId: 1 },
       { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
-      { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourceSite: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
-      { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourceSite: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
       streamReceivedMultipleData()
     ])
@@ -106,7 +106,7 @@ async function promiseReturnStreamTest(title, spec) {
       read.on('data', m => message += m)
       read.on('end', () => a(message))
     })
-    t.equal(actual, 'hello world')
+    t.strictEqual(actual, 'hello world')
 
     await s.satisfy([
       { ...functionConstructed({ functionName: 'promiseStream' }), instanceId: 1 },
@@ -116,10 +116,10 @@ async function promiseReturnStreamTest(title, spec) {
       { ...promiseResolved(), instanceId: 1, invokeId: 1, returnType: 'node/stream', returnInstanceId: 1 },
       { ...streamConstructed(), instanceId: 1 },
       { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
-      { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 1, sourceSite: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },
-      { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/stream', sourceInstanceId: 1, sourceInvokeId: 2, sourceSite: [1] },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 2 },
       streamReceivedMultipleData()
     ])
@@ -149,7 +149,7 @@ k.simulate('file upload stream', 'spec/node-fetch/input-stream', (title, spec) =
       body: file
     })
 
-    t.equal(actual, 'file\n')
+    t.strictEqual(actual, 'file\n')
 
     await s.done()
   })

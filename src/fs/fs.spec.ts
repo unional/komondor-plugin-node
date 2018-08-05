@@ -17,12 +17,12 @@ k.simulate('fs/readStream/success', (title, spec) => {
     const s = await spec(read)
     const file = fs.createReadStream('fixtures/file.txt')
     const actual = await s.subject(file)
-    t.equal(actual, 'actual\n')
+    t.strictEqual(actual, 'actual\n')
 
     await s.satisfy([
       { ...functionConstructed({ functionName: 'read' }), instanceId: 1 },
       { ...functionInvoked({ path: 'fixtures/file.txt' }), instanceId: 1, invokeId: 1 },
-      { ...streamConstructed(), instanceId: 1, sourceType: 'function', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [0] },
+      { ...streamConstructed(), instanceId: 1, sourceType: 'function', sourceInstanceId: 1, sourceInvokeId: 1, sourceSite: [0] },
       { ...streamMethodInvoked(['on'], 'data'), instanceId: 1, invokeId: 1 },
       { ...streamMethodReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...streamMethodInvoked(['on'], 'end'), instanceId: 1, invokeId: 2 },

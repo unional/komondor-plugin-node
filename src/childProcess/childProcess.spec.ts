@@ -5,11 +5,12 @@ import { childProcessConstructed, childProcessInvoked, childProcessReturned } fr
 import cp from 'child_process'
 
 describe('acceptance test', () => {
-  k.trio('childProcess/acceptance/spawn', (title, spec) => {
+  k.save('childProcess/acceptance/spawn', (title, spec) => {
     // additional on('end') are called internally.
     // need to filter them out before it is workable.
-    test.skip(title, async () => {
+    test.only(title, async () => {
       const s = await spec(cp.spawn)
+      // s.onAny(a => console.log(a))
       const child = s.subject('node', ['--version'])
       const actual = await new Promise<string>(a => {
         let msg = ''
@@ -17,7 +18,8 @@ describe('acceptance test', () => {
         child.stdout.on('data', chunk => msg += chunk)
       })
       t(/v*/.test(actual))
-      s.done()
+
+      await s.done()
     })
   })
 })
@@ -97,7 +99,7 @@ k.trio('childProcess/success', (title, spec) => {
   test(title, async () => {
     const s = await spec(childProcess.spawnSuccess)
     const actual = await childProcess.increment(s.subject, 2)
-    t.deepEqual(actual, {
+    t.deepStrictEqual(actual, {
       result: [['stdout', 3], ['stdout', 4], ['stdout', 5]],
       code: 0
     })
@@ -108,16 +110,16 @@ k.trio('childProcess/success', (title, spec) => {
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
       { ...childProcessConstructed(), instanceId: 1 },
       { ...childProcessInvoked(['on'], 'close'), instanceId: 1, invokeId: 1 },
-      { ...functionConstructed(), instanceId: 2, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourceSite: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...childProcessInvoked(['on'], 'error'), instanceId: 1, invokeId: 2 },
-      { ...functionConstructed(), instanceId: 3, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 2, sourceSite: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 2 },
       { ...childProcessInvoked(['stdout', 'on'], 'data'), instanceId: 1, invokeId: 3 },
-      { ...functionConstructed(), instanceId: 4, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 4, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourceSite: [1] },
       { ...childProcessReturned(['stdout', 'on']), instanceId: 1, invokeId: 3 },
       { ...childProcessInvoked(['stderr', 'on'], 'data'), instanceId: 1, invokeId: 4 },
-      { ...functionConstructed(), instanceId: 5, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 5, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourceSite: [1] },
       { ...childProcessReturned(['stderr', 'on']), instanceId: 1, invokeId: 4 },
       { ...functionInvoked(3), instanceId: 4, invokeId: 1 },
       { ...functionReturned(), instanceId: 4, invokeId: 1 },
@@ -134,7 +136,7 @@ k.trio('childProcess/fail', (title, spec) => {
   test(title, async () => {
     const s = await spec(childProcess.spawnFail)
     const actual = await childProcess.increment(s.subject, 2)
-    t.deepEqual(actual, {
+    t.deepStrictEqual(actual, {
       result: [['stdout', 3], ['stderr', 4]],
       code: 1
     })
@@ -145,16 +147,16 @@ k.trio('childProcess/fail', (title, spec) => {
       { ...functionReturned(), instanceId: 1, invokeId: 1, returnType: 'node/childProcess', returnInstanceId: 1 },
       { ...childProcessConstructed(), instanceId: 1 },
       { ...childProcessInvoked(['on'], 'close'), instanceId: 1, invokeId: 1 },
-      { ...functionConstructed(), instanceId: 2, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 2, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 1, sourceSite: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 1 },
       { ...childProcessInvoked(['on'], 'error'), instanceId: 1, invokeId: 2 },
-      { ...functionConstructed(), instanceId: 3, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 2, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 3, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 2, sourceSite: [1] },
       { ...childProcessReturned(['on']), instanceId: 1, invokeId: 2 },
       { ...childProcessInvoked(['stdout', 'on'], 'data'), instanceId: 1, invokeId: 3 },
-      { ...functionConstructed(), instanceId: 4, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 4, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 3, sourceSite: [1] },
       { ...childProcessReturned(['stdout', 'on']), instanceId: 1, invokeId: 3 },
       { ...childProcessInvoked(['stderr', 'on'], 'data'), instanceId: 1, invokeId: 4 },
-      { ...functionConstructed(), instanceId: 5, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourcePath: [1] },
+      { ...functionConstructed(), instanceId: 5, sourceType: 'node/childProcess', sourceInstanceId: 1, sourceInvokeId: 4, sourceSite: [1] },
       { ...childProcessReturned(['stderr', 'on']), instanceId: 1, invokeId: 4 },
       { ...functionInvoked(3), instanceId: 4, invokeId: 1 },
       { ...functionReturned(), instanceId: 4, invokeId: 1 },
