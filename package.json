@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
-    "@types/node": "^10.5.6",
+    "@types/node": "^12.11.4",
     "@unional/logging": "^0.5.3",
     "aurelia-logging-color": "^0.5.16",
     "dependency-check": "^3.2.0",
