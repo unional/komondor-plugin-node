@@ -73,7 +73,7 @@
     "node-fetch": "^2.2.0",
     "rimraf": "^3.0.0",
     "semantic-release": "^15.9.5",
-    "ts-jest": "^23.1.2",
+    "ts-jest": "^25.5.0",
     "tslint": "^5.11.0",
     "tslint-config-unional": "^0.10.0",
     "typescript": "^3.0.1"
