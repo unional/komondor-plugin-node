@@ -70,7 +70,7 @@
     "komondor": "^6.10.6",
     "komondor-plugin": "^1.7.7",
     "komondor-test": "^2.1.0",
-    "node-fetch": "^2.2.0",
+    "node-fetch": "^3.1.1",
     "rimraf": "^3.0.0",
     "semantic-release": "^15.9.5",
     "ts-jest": "^23.1.2",
