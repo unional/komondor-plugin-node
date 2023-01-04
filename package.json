@@ -66,7 +66,7 @@
     "dependency-check": "^3.2.0",
     "eslint": "^5.3.0",
     "eslint-plugin-harmony": "^1.0.4",
-    "jest": "^23.4.2",
+    "jest": "^29.3.1",
     "komondor": "^6.10.6",
     "komondor-plugin": "^1.7.7",
     "komondor-test": "^2.1.0",
